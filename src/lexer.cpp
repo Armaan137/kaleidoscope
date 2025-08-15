@@ -1,4 +1,7 @@
 #include "lexer.hpp"
+#include <cstdio> 
+#include <cctype>
+#include <cstdlib>
 
 std::string IdentifierStr {};
 double NumVal {};

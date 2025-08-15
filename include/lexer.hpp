@@ -2,9 +2,6 @@
 #define LEXER_H
 
 #include <string>
-#include <cstdio> 
-#include <cctype>
-#include <cstdlib>
 
 enum Token {
   tok_eof = -1,
