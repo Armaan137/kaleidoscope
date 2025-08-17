@@ -3,8 +3,8 @@
 #include <cctype>
 #include <cstdlib>
 
-std::string IdentifierStr {};
-double NumVal {};
+std::string identifierStr {};
+double numVal {};
 
 // returns the next token from standard input.
 int getToken() {
@@ -16,17 +16,17 @@ int getToken() {
     }
 
     if (std::isalpha(lastChar)) {
-        IdentifierStr = lastChar;
+        identifierStr = lastChar;
 
         while (std::isalnum(lastChar = std::getchar())) {
-            IdentifierStr += lastChar;
+            identifierStr += lastChar;
         }
 
-        if (IdentifierStr == "def") {
+        if (identifierStr == "def") {
             return tok_def;
         } 
 
-        if (IdentifierStr == "extern") {
+        if (identifierStr == "extern") {
             return tok_extern;
         }
 
@@ -41,7 +41,7 @@ int getToken() {
             lastChar = std::getchar();
         } while (std::isdigit(lastChar) || lastChar == '.');
 
-        NumVal = std::strtod(numStr.c_str(), 0);
+        numVal = std::strtod(numStr.c_str(), 0);
 
         return tok_number;
     }

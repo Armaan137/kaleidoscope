@@ -16,10 +16,10 @@ enum Token {
 };
 
 // if the current token is an identifier, this stores it.
-extern std::string IdentifierStr;
+extern std::string identifierStr;
 
 // if the current token is a numeric literal, this stores that.
-extern double NumVal;
+extern double numVal;
 
 int getToken();
 
