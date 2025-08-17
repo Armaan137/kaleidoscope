@@ -21,6 +21,6 @@ extern std::string IdentifierStr;
 // if the current token is a numeric literal, this stores that.
 extern double NumVal;
 
-int gettok();
+int getToken();
 
 #endif

@@ -7,7 +7,7 @@ std::string IdentifierStr {};
 double NumVal {};
 
 // returns the next token from standard input.
-int gettok() {
+int getToken() {
     static int lastChar {};
 
     // skip whitespace.
@@ -52,7 +52,7 @@ int gettok() {
         } while (lastChar != EOF && lastChar != '\n' && lastChar != '\r');
 
         if (lastChar != EOF) {
-            return gettok();
+            return getToken();
         }
     }
 
