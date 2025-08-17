@@ -52,4 +52,27 @@ public:
     : callee(callee), args(std::move(args)) {}
 };
 
+// the prototype for a function.
+class PrototypeAST {
+private:
+    std::string name;
+    std::vector<std::string> args;
+
+public:
+    PrototypeAST(const std::string& name, std::vector<std::string> args) 
+    : name(name), args(args) {}
+};
+
+// a function definiton.
+class FunctionAST {
+private:
+    std::unique_ptr<PrototypeAST> prototype;
+    std::unique_ptr<ExprAST> body;
+
+public:
+    FunctionAST(std::unique_ptr<PrototypeAST> prototype, std::unique_ptr<ExprAST> body) 
+    : prototype(std::move(prototype)), body(std::move(body)) {}
+};
+
+
 #endif
