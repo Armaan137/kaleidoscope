@@ -12,7 +12,7 @@ std::unique_ptr<ExprAST> logError(const char *str) {
     return nullptr;
 }
 
-std::unique_ptr<ExprAST> logErrorP(const char *str) {
+std::unique_ptr<PrototypeAST> logErrorP(const char *str) {
     logError(str);
     return nullptr;
 }
@@ -30,18 +30,13 @@ std::unique_ptr<ExprAST> parseParenExpr() {
     getNextToken(); // consumes the opening parentheses.
 
     auto v = parseExpression();
-    if (!v) {
-        return nullptr;
-    }
-
-    if (currToken != ')') {
-        return logError("expected ')'");
-    }
-
+    if (!v) return nullptr;
+    
+    if (currToken != ')') return logError("expected ')'");
+    
     getNextToken(); // consumes the closing parantheses.
 
     return v;
-    
 }
 
 // identifierExpr ::= identifier
@@ -52,10 +47,8 @@ std::unique_ptr<ExprAST> parseIdentifierExpr() {
     getNextToken(); // consume the identifier.
 
     // if the identifier is normal and not for a function.
-    if (currToken != '(') {
-        return std::make_unique<VariableExprAST>(name);
-    }
-
+    if (currToken != '(') return std::make_unique<VariableExprAST>(name);
+    
     // is a function.
     getNextToken(); // consume the opening parantheses.
 
@@ -165,4 +158,54 @@ std::unique_ptr<ExprAST> parseBinaryRHS(int exprPrec, std::unique_ptr<ExprAST> l
         left = std::make_unique<BinaryExprAST>(binaryOperator, std::move(left), std::move(right));
     }
 }
-    
+
+// prototype ::= id '(' id* ')'.
+std::unique_ptr<PrototypeAST> parsePrototype() {
+    if (currToken != tok_identifier) return logErrorP("Expected function name in prototype");
+
+    std::string functinoName = identifierStr;
+    getNextToken();
+
+    if (currToken != '(') return logErrorP("Expected '(' in prototype");
+
+    // read the list of argument names.
+    std::vector<std::string> argumentNames;
+    while (getNextToken() == tok_identifier) argumentNames.push_back(identifierStr);
+
+    if (currToken != ')') return logErrorP("Expected ')' in prototype");
+
+    getNextToken(); // consume the closing parentheses.
+
+    return std::make_unique<PrototypeAST>(functinoName, std::move(argumentNames));
+}
+
+// definition ::= 'def' prototype expression.
+std::unique_ptr<FunctionAST> parseDefinition() {
+    getNextToken(); // eat the 'def'.
+
+    auto prototype = parsePrototype();
+    if (!prototype) return nullptr;
+
+    if (auto expression = parseExpression()) 
+        return std::make_unique<FunctionAST>(std::move(prototype), std::move(expression));
+
+    return nullptr;
+}
+
+// external ::= 'extern' prototype.
+std::unique_ptr<PrototypeAST> parseExtern() {
+    getNextToken(); // consume the 'extern'.
+
+    return parsePrototype();
+}    
+
+// topLevelExpr ::= expression.
+std::unique_ptr<FunctionAST> parseTopLevelExpr() {
+    if (auto expression = parseExpression()) {
+        // make an anonymous prototype.
+        auto prototype = std::make_unique<PrototypeAST>("", std::vector<std::string>());
+        return std::make_unique<FunctionAST>(std::move(prototype), std::move(expression));
+    }
+
+    return nullptr;
+}
