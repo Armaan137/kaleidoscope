@@ -61,14 +61,9 @@ std::unique_ptr<ExprAST> parseIdentifierExpr() {
                 return nullptr;
             }
 
-            if (currToken == ')') {
-                break;
-            }
-
-            if (currToken != ',') {
-                return logError("Expected ')' or ',' in argument list");
-            }
-
+            if (currToken == ')') break;
+            if (currToken != ',') return logError("Expected ')' or ',' in argument list");
+            
             getNextToken();
         }
 
@@ -105,10 +100,8 @@ bool is_ascii(unsigned char c) {
 
 // get the precendence of the binary operator token.
 int getTokenPrecedence() {
-    if (!is_ascii(currToken)) {
-        return -1;
-    }
-
+    if (!is_ascii(currToken)) return -1;
+    
     // is a declared operator.
     int tokenPrecedence = binaryPrecedence[currToken];
     if (tokenPrecedence <= 0) return -1;
