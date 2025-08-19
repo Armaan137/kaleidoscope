@@ -101,3 +101,68 @@ std::unique_ptr<ExprAST> parsePrimary() {
             return parseParenExpr();
     }
 }
+
+// holds precedence for each binary operator.
+std::map<char, int> binaryPrecedence;
+
+// helper function.
+bool is_ascii(unsigned char c) {
+    return c <= 127;
+}
+
+// get the precendence of the binary operator token.
+int getTokenPrecedence() {
+    if (!is_ascii(currToken)) {
+        return -1;
+    }
+
+    // is a declared operator.
+    int tokenPrecedence = binaryPrecedence[currToken];
+    if (tokenPrecedence <= 0) return -1;
+
+    return tokenPrecedence;
+}
+
+// expression ::= binaryOpRHS
+std::unique_ptr<ExprAST> parseExpression() {
+    auto left = parsePrimary();
+
+    if (!left) return nullptr;
+
+    return parseBinaryRHS(0, std::move(left));
+}
+
+// Operator precedence climbing.
+// binaryOpRHS ::= ('+' primary)*.
+std::unique_ptr<ExprAST> parseBinaryRHS(int exprPrec, std::unique_ptr<ExprAST> left) {
+
+    // if this is a binary operator, find it's precedence.
+    while (true) {
+        int tokenPrecedence = getTokenPrecedence();
+
+        // if this is a binary operator that binds as tightly as the current one, consume it. otherwise, return.
+        if (tokenPrecedence < exprPrec) return left;
+
+        int binaryOperator = currToken;
+        getNextToken(); // consume the operator.
+
+        // parse the primary expression after the binary operator.
+        auto right = parsePrimary();
+
+        if (!right) return nullptr;
+
+        // if binary operator binds less tightly with the right hand side than the operator after the right hand side, 
+        // let
+        int nextPrecedence = getTokenPrecedence();
+
+        if (tokenPrecedence < nextPrecedence) {
+            right = parseBinaryRHS(tokenPrecedence + 1, std::move(right));
+
+            if (!right) return nullptr;
+        }
+        
+        // merge left/right.
+        left = std::make_unique<BinaryExprAST>(binaryOperator, std::move(left), std::move(right));
+    }
+}
+    
