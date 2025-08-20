@@ -66,12 +66,11 @@ std::unique_ptr<ExprAST> parseIdentifierExpr() {
             
             getNextToken();
         }
-
-        getNextToken(); // consume the closing parantheses.
-
-        return std::make_unique<CallExprAST>(name, std::move(args));
-        
     }
+
+    getNextToken(); // consume the closing parantheses.
+
+    return std::make_unique<CallExprAST>(name, std::move(args));
 }
 
 // primary ::= identifierExpr
