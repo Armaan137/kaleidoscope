@@ -4,5 +4,11 @@
 #include "parser.hpp"
 
 #include <iostream>
+#include <cstdio>
+
+void loop();
+void handleTopLevelExpression();
+void handleExtern();
+void handleDefinition();
 
 #endif
