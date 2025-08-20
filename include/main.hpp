@@ -3,4 +3,6 @@
 
 #include "parser.hpp"
 
+#include <iostream>
+
 #endif

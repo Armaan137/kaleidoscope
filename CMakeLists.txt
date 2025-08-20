@@ -16,6 +16,7 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 add_executable(Kaleidoscope
     src/main.cpp
     src/lexer.cpp
+    src/parser.cpp
 )
 
 target_include_directories(Kaleidoscope

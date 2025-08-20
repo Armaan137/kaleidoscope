@@ -8,7 +8,7 @@ double numVal {};
 
 // returns the next token from standard input.
 int getToken() {
-    static int lastChar {};
+    static int lastChar {' '};
 
     // skip whitespace.
     while (std::isspace(lastChar)) {

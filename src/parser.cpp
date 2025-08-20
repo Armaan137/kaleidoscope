@@ -3,7 +3,8 @@
 int currToken {};
 
 int getNextToken() {
-    return currToken = getToken();
+    currToken = getToken();
+    return currToken;
 }
 
 // helpers for error handling.
@@ -91,6 +92,14 @@ std::unique_ptr<ExprAST> parsePrimary() {
 
 // holds precedence for each binary operator.
 std::map<char, int> binaryPrecedence;
+
+void initPrecedence() {
+    // insert the operators.
+    binaryPrecedence['<'] = 10; // lowest.
+    binaryPrecedence['+'] = 20;
+    binaryPrecedence['-'] = 20;
+    binaryPrecedence['*'] = 40; // highest.
+}
 
 // helper function.
 bool is_ascii(unsigned char c) {
