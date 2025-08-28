@@ -1,15 +1,29 @@
 #ifndef EXPRAST_H
-#define EXPRAST_H
+#define EXPRAST_H 
 
 #include <string>
 #include <memory>
 #include <vector>
 #include <ostream>
 
+#include "llvm/ADT/APFloat.h"
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/IR/BasicBlock.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Type.h"
+#include "llvm/IR/Verifier.h"
+
 // abtract interface for all expression nodes.
 class ExprAST {
 public:
     virtual ~ExprAST() = default;
+    // Emit IR for that AST node and all the things it depends on. Value is the class used to represent a SSA register.
+    virtual llvm::Value *codegen() = 0;
 };
 
 // expression class for a literal numeric value.
@@ -19,6 +33,7 @@ private:
 
 public:
     NumberExprAST(double val) : val(val) {}
+    llvm::Value *codegen() override;
 };
 
 // for a reference to a named variable.
@@ -74,5 +89,6 @@ public:
     : prototype(std::move(prototype)), body(std::move(body)) {}
 };
 
+llvm::Value *logErrorV(const char *str);
 
 #endif
