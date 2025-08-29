@@ -47,3 +47,19 @@ llvm::Value *BinaryExprAST::codegen() {
     }
 }
 
+llvm::Value *CallExprAST::codegen() {
+    // Look up function name in global module table.
+    llvm::Function *calleeFunc = module->getFunction(callee);
+    if (!calleeFunc) return logErrorV("Unknown function referenced.");
+
+    // Argument mismatch error.
+    if (calleeFunc->arg_size() != args.size()) return logErrorV("Incorrect number of arguments.");
+
+    std::vector<llvm::Value*> argsV;
+    for (unsigned int i = 0, e = args.size(); i != e; i++) {
+        argsV.push_back(args[i]->codegen());
+        if (!argsV.back()) return nullptr;
+    }
+
+    return builder->CreateCall(calleeFunc, argsV, "calltmp");
+}
