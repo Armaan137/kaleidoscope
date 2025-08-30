@@ -33,6 +33,7 @@ private:
 
 public:
     NumberExprAST(double val) : val(val) {}
+
     llvm::Value *codegen() override;
 };
 
@@ -43,6 +44,8 @@ private:
 
 public:
     VariableExprAST(const std::string& name) : name(name) {}
+
+    llvm::Value *codegen() override;
 };
 
 // a binary operator application with two operands.
@@ -54,6 +57,8 @@ private:
 public:
     BinaryExprAST(char op, std::unique_ptr<ExprAST> left, std::unique_ptr<ExprAST> right) 
     : op(op), left(std::move(left)), right(std::move(right)) {}
+
+    llvm::Value *codegen() override;
 };
 
 // a function call.
@@ -65,6 +70,8 @@ private:
 public:
     CallExprAST(const std::string& callee, std::vector<std::unique_ptr<ExprAST>> args) 
     : callee(callee), args(std::move(args)) {}
+
+    llvm::Value *codegen() override;
 };
 
 // the prototype for a function.
@@ -76,6 +83,9 @@ private:
 public:
     PrototypeAST(const std::string& name, std::vector<std::string> args) 
     : name(name), args(args) {}
+
+    llvm::Function *codegen();
+    const std::string &getName() const { return name; }
 };
 
 // a function definiton.
@@ -87,6 +97,8 @@ private:
 public:
     FunctionAST(std::unique_ptr<PrototypeAST> prototype, std::unique_ptr<ExprAST> body) 
     : prototype(std::move(prototype)), body(std::move(body)) {}
+
+    llvm::Function *codegen();
 };
 
 llvm::Value *logErrorV(const char *str);
