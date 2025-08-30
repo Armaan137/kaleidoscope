@@ -11,12 +11,14 @@ llvm::Value *logErrorV(const char *str) {
     return nullptr;
 }
 
+// Turns double into an LLVM constant double.
 llvm::Value *NumberExprAST::codegen() {
     // ConstantFP is a subclass of Constant which itself is a value. Represents a floating-point constant in LLVM IR.
     // APFloat is LLVM's internal class for representing floating-points of arbitrary precision.
     return llvm::ConstantFP::get(*context, llvm::APFloat(val));
 }
 
+// Variable lookup.
 llvm::Value *VariableExprAST::codegen() {
     llvm::Value *variable = namedValues[name];
     if (!variable) {
@@ -88,6 +90,7 @@ llvm::Function *PrototypeAST::codegen() {
     return function;
 }
 
+// Emitting a function defintion.
 llvm::Function *FunctionAST::codegen() {
     // Check for an existing function from an 'extern' declaration.
     llvm::Function *function = module->getFunction(prototype->getName());
