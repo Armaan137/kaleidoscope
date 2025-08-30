@@ -1,9 +1,9 @@
 #include "exprAST.hpp"
 #include "parser.hpp"
 
-static std::unique_ptr<llvm::LLVMContext> context;   // Object that has core LLVM data structures. Stored unique values.
+static std::unique_ptr<llvm::LLVMContext> context;      // Object that has core LLVM data structures. Stored unique values.
 static std::unique_ptr<llvm::IRBuilder<>> builder;      // Helper object that helps generate LLVM instructions. Instances of IRBuilder class template keeps track of the current place to insert and has methods to create new instructions. 
-static std::unique_ptr<llvm::Module> module;         // Construct that contains functions and global variables. Will own the memeory for all the IR generated.
+static std::unique_ptr<llvm::Module> module;            // Construct that contains functions and global variables. Will own the memory for all the IR generated.
 static std::map<std::string, llvm::Value*> namedValues; // Keeps track of which values are defined in the current scope and what their LLVM representation is; symbol table.
 
 llvm::Value *logErrorV(const char *str) {
@@ -26,6 +26,7 @@ llvm::Value *VariableExprAST::codegen() {
     return variable;
 }
 
+// Lowers binary expressions into LLVM IR.
 llvm::Value *BinaryExprAST::codegen() {
     llvm::Value *l = left->codegen();
     llvm::Value *r = right->codegen();
@@ -47,19 +48,42 @@ llvm::Value *BinaryExprAST::codegen() {
     }
 }
 
+// Creates an LLVM call instruction that produces a double Value.
 llvm::Value *CallExprAST::codegen() {
     // Look up function name in global module table.
     llvm::Function *calleeFunc = module->getFunction(callee);
     if (!calleeFunc) return logErrorV("Unknown function referenced.");
 
-    // Argument mismatch error.
+    // Argument mismatch error. Don't need to check types since everything is double.
     if (calleeFunc->arg_size() != args.size()) return logErrorV("Incorrect number of arguments.");
 
+    // Codegen each argument. args[i] is itself an expression AST node.
     std::vector<llvm::Value*> argsV;
     for (unsigned int i = 0, e = args.size(); i != e; i++) {
         argsV.push_back(args[i]->codegen());
         if (!argsV.back()) return nullptr;
     }
 
+    // Generate an LLVM call instruction. Returns a Value* that represents the result of the call.
     return builder->CreateCall(calleeFunc, argsV, "calltmp");
+}
+
+// Creates a function signature in LLVM IR.
+llvm::Function *PrototypeAST::codegen() {
+    // Build parameter type lists which are all doubles.
+    std::vector<llvm::Type*> doubles(args.size(), llvm::Type::getDoubleTy(*context));
+
+    // Create the FunctionType. Describes a function's signature (return type, parameter types, variadic flag).
+    llvm::FunctionType *functionType = llvm::FunctionType::get(llvm::Type::getDoubleTy(*context), doubles, false);
+
+    // Create the LLVM function. Adds a new function to the LLVM module.
+    llvm::Function *function = llvm::Function::Create(functionType, llvm::Function::ExternalLinkage, name, module.get());
+
+    // Set the name of each of the function's arguments according to the names given in the prototype.
+    unsigned int index {0};
+    for (auto& arg : function->args()) {
+        arg.setName(args[index++]);
+    }
+
+    return function;
 }
