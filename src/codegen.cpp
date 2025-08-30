@@ -87,3 +87,42 @@ llvm::Function *PrototypeAST::codegen() {
 
     return function;
 }
+
+llvm::Function *FunctionAST::codegen() {
+    // Check for an existing function from an 'extern' declaration.
+    llvm::Function *function = module->getFunction(prototype->getName());
+
+    // If there is no existing function, codegen one from the prototype.
+    if (!function) function = prototype->codegen();
+
+    if (!function) return nullptr;
+
+    // If the function already has basic blocks, that means it's already been defined.
+    if (!function->empty()) return (llvm::Function*)logErrorV("Function cannot be redefined.");
+
+    // Create a new basic block that is inserted into the function.
+    llvm::BasicBlock *basicBlock = llvm::BasicBlock::Create(*context, "entry", function);
+
+    // Tells builder to append subsequent instructions into the new basic block.
+    builder->SetInsertPoint(basicBlock);
+
+    // Record the function arguments in the namedValues map.
+    namedValues.clear();
+    for (auto& arg: function->args()) {
+        namedValues[std::string(arg.getName())] = &arg;
+    }
+
+    // Recursively emits IR for the function body expression and yields the final double value.
+    if (llvm::Value *returnVal = body->codegen()) {
+        // Emit the return with that value.
+        builder->CreateRet(returnVal);
+
+        llvm::verifyFunction(*function);
+
+        return function;
+    }
+
+    // Error reading body, remove the function.
+    function->eraseFromParent();
+    return nullptr;
+}
