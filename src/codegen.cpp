@@ -95,6 +95,9 @@ llvm::Function *FunctionAST::codegen() {
     // Check for an existing function from an 'extern' declaration.
     llvm::Function *function = module->getFunction(prototype->getName());
 
+    // Arity check between the prototype and definiton. Other signature checks are unnecessary since all types are doubles.
+    if ((function->arg_size() != prototype->getNumArgs())) return (llvm::Function*)logErrorV("Arity mismatch.");
+
     // If there is no existing function, codegen one from the prototype.
     if (!function) function = prototype->codegen();
 
@@ -109,11 +112,16 @@ llvm::Function *FunctionAST::codegen() {
     // Tells builder to append subsequent instructions into the new basic block.
     builder->SetInsertPoint(basicBlock);
 
-    // Record the function arguments in the namedValues map.
+    // Record the function arguments in the namedValues map. Bind the arguments by position.
+    // We map parameter names to the IR argument at the same index. This means later defintion's names line up with the right values
+    // even if an earlier extern used different names for the parameters.
     namedValues.clear();
-    for (auto& arg: function->args()) {
-        namedValues[std::string(arg.getName())] = &arg;
-    }
+    size_t n = function->arg_size();
+    for (size_t i = 0; i < n; i++) {
+        llvm::Argument *argObj = function->getArg(i);
+        const std::string& prototypeName = prototype->getArgName(i);
+        namedValues[prototypeName] = argObj;
+    } 
 
     // Recursively emits IR for the function body expression and yields the final double value.
     if (llvm::Value *returnVal = body->codegen()) {
