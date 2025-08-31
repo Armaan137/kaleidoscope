@@ -86,6 +86,8 @@ public:
 
     llvm::Function *codegen();
     const std::string &getName() const { return name; }
+    size_t getNumArgs() const { return args.size(); }
+    const std::string &getArgName(unsigned int i) const { return args[i]; }
 };
 
 // a function definiton.
