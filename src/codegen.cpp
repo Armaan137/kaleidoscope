@@ -95,17 +95,21 @@ llvm::Function *FunctionAST::codegen() {
     // Check for an existing function from an 'extern' declaration.
     llvm::Function *function = module->getFunction(prototype->getName());
 
-    // Arity check between the prototype and definiton. Other signature checks are unnecessary since all types are doubles.
-    if ((function->arg_size() != prototype->getNumArgs())) return (llvm::Function*)logErrorV("Arity mismatch.");
+    if (function) {
+        if (!function->empty()) {
+            // If the function already has basic blocks, that means it's already been defined.
+             return (llvm::Function*)logErrorV("Function cannot be redefined.");
+        } else {
+            // Arity check between the prototype and definiton. Other signature checks are unnecessary since all types are doubles.
+            if ((function->arg_size() != prototype->getNumArgs())) return (llvm::Function*)logErrorV("Arity mismatch.");
+        }
+    }
 
     // If there is no existing function, codegen one from the prototype.
     if (!function) function = prototype->codegen();
 
     if (!function) return nullptr;
-
-    // If the function already has basic blocks, that means it's already been defined.
-    if (!function->empty()) return (llvm::Function*)logErrorV("Function cannot be redefined.");
-
+    
     // Create a new basic block that is inserted into the function.
     llvm::BasicBlock *basicBlock = llvm::BasicBlock::Create(*context, "entry", function);
 
