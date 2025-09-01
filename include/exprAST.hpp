@@ -4,7 +4,6 @@
 #include <string>
 #include <memory>
 #include <vector>
-#include <ostream>
 #include <map>
 
 #include "llvm/ADT/APFloat.h"

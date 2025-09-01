@@ -1,4 +1,10 @@
 #include "parser.hpp"
+#include "lexer.hpp"
+
+#include <iostream>
+#include <string>
+#include <vector>
+#include <map>
 
 int currToken {};
 

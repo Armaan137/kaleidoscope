@@ -1,11 +1,8 @@
 #include "parser.hpp"
 #include "exprAST.hpp"
+#include "lexer.hpp"
 
 #include "llvm/Support/raw_ostream.h"
-
-#include <iostream>
-#include <cstdio>
-#include <cstdio>
 
 static void loop();
 static void initializeModule();
