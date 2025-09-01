@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 #include <ostream>
+#include <map>
 
 #include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/STLExtras.h"
@@ -103,6 +104,9 @@ public:
     llvm::Function *codegen();
 };
 
-llvm::Value *logErrorV(const char *str);
+extern std::unique_ptr<llvm::LLVMContext> context;
+extern std::unique_ptr<llvm::IRBuilder<>> builder;       
+extern std::unique_ptr<llvm::Module> module;            
+extern std::map<std::string, llvm::Value*> namedValues; 
 
 #endif
