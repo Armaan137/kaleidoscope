@@ -1,4 +1,17 @@
-#include "main.hpp"
+#include "parser.hpp"
+#include "exprAST.hpp"
+
+#include "llvm/Support/raw_ostream.h"
+
+#include <iostream>
+#include <cstdio>
+#include <cstdio>
+
+static void loop();
+static void initializeModule();
+static void handleDefinition();
+static void handleExtern();
+static void handleTopLevelExpression();
 
 int main() {
 
@@ -8,12 +21,14 @@ int main() {
     std::fprintf(stderr, "> ");
     getNextToken();
 
+    initializeModule();
+
     loop();
 
     return 0;
 }
 
-void loop() {
+static void loop() {
     while (true) {
         std::fprintf(stderr, "> ");
         switch (currToken) {
@@ -35,25 +50,48 @@ void loop() {
     }
 }
 
-void handleDefinition() {
-    if (parseDefinition()) {
-        std::fprintf(stderr, "Parsed a function definition.\n");
+static void initializeModule() {
+    // Open a new context and module.
+    context = std::make_unique<llvm::LLVMContext>();
+    module = std::make_unique<llvm::Module>("epic jit", *context);
+
+    // Create a new builder for the module.
+    builder = std::make_unique<llvm::IRBuilder<>>(*context);
+}
+
+static void handleDefinition() {
+    if (auto funcAST = parseDefinition()) {
+        if (auto *funcIR = funcAST->codegen()) {
+            std::fprintf(stderr, "Read a function definition:\n");
+            funcIR->print(llvm::errs());
+        }
     } else {
+        // Skips token for error recovery.
         getNextToken();
     }   
 }
 
-void handleExtern() {
-    if (parseExtern()) {
-        std::fprintf(stderr, "Parsed an extern.\n");
+static void handleExtern() {
+    if (auto protoAST = parseExtern()) {
+        if (auto *funcIR = protoAST->codegen()) {
+            std::fprintf(stderr, "Read an extern:\n");
+            funcIR->print(llvm::errs());
+        }
     } else {
         getNextToken();
     }
 }
 
-void handleTopLevelExpression() {
-    if (parseTopLevelExpr()) {
-        std::fprintf(stderr, "Parsed a top-level expr\n");
+static void handleTopLevelExpression() {
+    // Evaluate a top-level expression into an anonymous function.
+    if (auto funcAST = parseTopLevelExpr()) {
+        if (auto *funcIR = funcAST->codegen()) {
+            std::fprintf(stderr, "Read a top-level expr:\n");
+            funcIR->print(llvm::errs());
+
+            // Remove the anonymous expression.
+            funcIR->eraseFromParent();
+        }
     } else {
         getNextToken();
     }
